@@ -7,3 +7,5 @@ Debug/actionGameSample.exe
 Debug/
 .vs/actionGameSample/v15/Browse.VC.db
 .vs/
+actionGameSample/game.ilk
+actionGameSample/game.pdb
