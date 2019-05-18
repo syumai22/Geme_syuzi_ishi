@@ -23,7 +23,6 @@ void UI::DrawUI(Rule *rule, Player *player,BitmapText text)
 	// 残りライフを入れる文字列.
 	char buf[128];
 	char sco[128];
-	char Newrecordsco[128];
 	char hiSco[128];
 	// HP表示を始めるX座標.
 	int sc = LIMIT_TIME_COUNT + ((rule->gameStartTime - GetNowCount()) / 1000);
@@ -31,8 +30,6 @@ void UI::DrawUI(Rule *rule, Player *player,BitmapText text)
 	sprintf(buf, "TIME:%d", LIMIT_TIME_COUNT + ((rule->gameStartTime - GetNowCount()) / 1000));
 	sprintf(sco, "YOU SCORE:%d", player->hp *100);
 
-	
-	//Please press the space key
 	text.setFontImage(16, 6, "image/font.bmp");
 	text.reMapText(" !\"#$%&`[]*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\tabcdefghijklmnopqrstuvwxyz{|}~\\");
 	// ルールごとに表示物を変える.

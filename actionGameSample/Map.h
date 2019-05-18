@@ -5,8 +5,8 @@ class Map
 {
 public:
 
-	int		X = 0;
-	int		Y = 0;
+	float	X = 0;
+	float	Y = 0;
 	int		score;
 	int		imgMapChip[75];		// 背景マップチップ画像
 	int CheckEliminatBlock()

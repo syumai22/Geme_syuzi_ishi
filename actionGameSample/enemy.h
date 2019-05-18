@@ -11,21 +11,21 @@ class BitmapText;
 class Enemy
 {
 public:
-	float				x;									//x.yの座標
+	float				x;											//x.yの座標
 	float				y;									
-	float				vx;									//vx,vyの座標
+	float				vx;											//vx,vyの座標
 	float				vy;
 	float				nextE_x ;
 	float				nextE_y ;
 	int					imgEnemy[4];								//エネミー画像	
 	int					aniNum;
-	const int			w = 24;										// エネミーの当たり判定幅
-	const int			h = 32;										// エネミーの当たり判定高さ
+	const float			w = 24.0f;										// エネミーの当たり判定幅
+	const float 		h = 32.0f;										// エネミーの当たり判定高さ
 	int					onGround = true;
 	int					hp;
 	int					Atke;
-	int					damagecont ;					//次にダメージを受けるまでの秒
-	const int			position_Modification=15;
+	float				damagecont ;								//次にダメージを受けるまでの秒
+	const float			position_Modification=15.0f;
 	bool				damageFlag = false;
 	//ランダムに敵を沸かせる
 	int ranodmRange(int min, int max)
@@ -55,10 +55,10 @@ public:
 
 	static const float  jumpPower;
 	static const float  e_Gravity;									// 重力加速度 
-	const int			MAX_OVERLAP_CAPACITY = 15;					// 壁最大めり込み量
+	static const float	MAX_OVERLAP_CAPACITY;					// 壁最大めり込み量
 	
 	void				InitEnemy();
 	void				DrawEnemy(Player *playe,Map *scr,Rule *rule, BitmapText *text);
-	void				AddEnemy(int ex,int ey, int evx, int evy);
+	void				AddEnemy(int enemyX,int enemyY, int enemyVX, int enemyVY);
 	void				BlocRectEnemy();
 };

@@ -1,8 +1,8 @@
 #include"Header.h"
 
-const float Enemy::jumpPower = 5.0f;
+const float Enemy::jumpPower = 5.0f;				// ジャンプ力
 const float Enemy::e_Gravity = 0.3f;				// 重力加速度 
-
+const float Enemy::MAX_OVERLAP_CAPACITY = 15.0f;	// 最大壁めり込み
 bool e_checkHitRect(rect r1, rect r2)				// 矩形ヒットチェック関数
 {
 	return ((r1.x < (r2.x + r2.w)) &&
@@ -10,7 +10,7 @@ bool e_checkHitRect(rect r1, rect r2)				// 矩形ヒットチェック関数
 		(r1.y < (r2.y + r2.h)) &&
 		(r2.y < (r1.y + r1.h)));
 }
-
+//エネミーの初期化
 void Enemy::InitEnemy()
 {
 	LoadDivGraph("image/ninzya.png", 4, 4, 1, 32, 32, imgEnemy);	// エネミーのグラフィックをメモリにロード
@@ -28,19 +28,6 @@ void Enemy::InitEnemy()
 //エネミーの表示
 void Enemy::DrawEnemy(Player *player,Map *scr,Rule *rule,BitmapText *text)
 {
-	rect EnemyHitChecRect, PlayerrightAtkHitChec, PlayerLeftatkHitChec;
-	PlayerLeftatkHitChec.x = player->x - scr->X + player->leftArkModification;
-	PlayerLeftatkHitChec.y = player->y - scr->Y;
-	PlayerLeftatkHitChec.w = w;
-	PlayerLeftatkHitChec.h = h;
-	PlayerrightAtkHitChec.x = player->x - scr->X + player->rightAtkModification;
-	PlayerrightAtkHitChec.y = player->y - scr->Y;
-	PlayerrightAtkHitChec.w = w;
-	PlayerrightAtkHitChec.h = h;
-	EnemyHitChecRect.x = x - scr->X;
-	EnemyHitChecRect.y = y - scr->Y;
-	EnemyHitChecRect.w = w;
-	EnemyHitChecRect.h = h;
 	if (aliveFlg == TRUE)
 	{
 		if (rule->frameCount % animeCount == 0)
@@ -49,14 +36,14 @@ void Enemy::DrawEnemy(Player *player,Map *scr,Rule *rule,BitmapText *text)
 		}
 		if (aniNum == anim_Walk_End)
 		{
-			aniNum =  anim_Walk_Start;
+			aniNum = anim_Walk_Start;
 		}
 
-		if (player->x> x)
+		if (player->x > x)
 		{
 			if (vx <= 1)
 			{
-				vx += 0.1;
+				vx += 0.1f;
 			}
 			if (vx > MAX_OVERLAP_CAPACITY)
 			{
@@ -64,11 +51,11 @@ void Enemy::DrawEnemy(Player *player,Map *scr,Rule *rule,BitmapText *text)
 			}
 			dir = TRUE;
 		}
-		else if (player->x-player->w < x)
+		else if (player->x - player->w < x)
 		{
 			if (vx >= -1)
 			{
-				vx -= 0.1;
+				vx -= 0.1f;
 			}
 			if (vx > MAX_OVERLAP_CAPACITY)
 			{
@@ -76,10 +63,10 @@ void Enemy::DrawEnemy(Player *player,Map *scr,Rule *rule,BitmapText *text)
 			}
 			dir = FALSE;
 		}
-	
+
 		if (aliveFlg == TRUE)
 		{
-			if(!damageFlag)
+			if (!damageFlag)
 			{
 				DrawRotaGraph(x - scr->X, y - scr->Y + position_Modification, 1.0f, 0, imgEnemy[aniNum], TRUE, dir);
 			}
@@ -89,69 +76,24 @@ void Enemy::DrawEnemy(Player *player,Map *scr,Rule *rule,BitmapText *text)
 				DrawRotaGraph(x - scr->X, y - scr->Y + position_Modification, 1.0f, 0, imgEnemy[aniNum], TRUE, dir);
 			}
 		}
-		/*if (player->dir == true)
-		{
-			if (player->atkDamage == true)
-			{
-
-				if (e_checkHitRect(PlayerrightAtkHitChec, EnemyHitChecRect))
-				{
-					if (aliveFlg == true)
-					{
-						hp -= 1;
-
-						player->atkDamage = false;
-					}
-				}
-				if (damagecont == 10)
-				{
-					player->atkDamage = false;
-				}
-			}
-		}
-		else
-		{
-			if (player->atkDamage == true)
-			{
-				if (e_checkHitRect(PlayerLeftatkHitChec, EnemyHitChecRect))
-				{
-					if (aliveFlg == true)
-					{
-						hp -= 1;
-
-						player->atkDamage = false;
-					}
-				}
-				if (damagecont == 10)
-				{
-					player->atkDamage = false;
-				}
-			}
-		}
-		if (!player->atkDamage)
-		{
-			damagecont = 0;
-			player->atkDamage = false;
-		}*/
 	}
 	if (hp <= 0)
 	{
 		aliveFlg = FALSE;
 	}
-	
-	
 }
 
 //敵を１００フレーム毎に追加
-void Enemy::AddEnemy(int ex, int ey,int evx,int evy)
+void Enemy::AddEnemy(int enemyX, int enemyY,int enemyVX,int enemyVY)
 {
-	x = ex;
-	y = ey;
-	vx= evx;
-	vy= evy;
+	x = enemyX;
+	y = enemyY;
+	vx= enemyVX;
+	vy= enemyVY;
 	aliveFlg = TRUE;
 	
 }
+//エネミーとブロックの当たり判定
 void Enemy::BlocRectEnemy()
 {
 	rect enemyRect, blocrect;
@@ -189,13 +131,14 @@ void Enemy::BlocRectEnemy()
 					//ブロックとぶつかったか
 					if (e_checkHitRect(enemyRect, blocrect))
 					{
-						//
+						//ブロックの上側とぶつかった
 						if ((enemyRect.y + enemyRect.h) - blocrect.y+2 <= MAX_OVERLAP_CAPACITY
 							&& vy > 0.0f)
 						{
 							enemyRect.y = blocrect.y - enemyRect.h;
 							vy = 0;
 						}
+						//ジャンプブロックとぶつかった
 						if (map[y][x] == 68)
 						{
 							vy -= 10;
@@ -220,9 +163,8 @@ void Enemy::BlocRectEnemy()
 							vx = 0;
 							if (onGround)
 							{
-
-							vy = -jumpPower;
-							onGround = false;
+								vy = -jumpPower;
+								onGround = false;
 							}
 						}
 
@@ -232,9 +174,8 @@ void Enemy::BlocRectEnemy()
 						{
 							if (onGround)
 							{
-
-							vy = -jumpPower;
-							onGround = false;
+								vy = -jumpPower;
+								onGround = false;
 							}
 							enemyRect.x = blocrect.x + blocrect.w;
 							vx = 0;

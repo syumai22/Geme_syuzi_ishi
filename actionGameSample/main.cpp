@@ -150,17 +150,19 @@ int		WINAPI		myWinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR     CmdLin
 	Enemy	enemy[enemyNum];
 	Rule	rule;
 	Map		map;
-	Shot	shot[SHOT];
 	UI		ui;
 	Sound	sound;
+	Item    item;
 	BitmapText text;
-	/*Shot	shot[SHOT];*/
-
-	rule.InitRule();
+	
+	//////////////////////////////////////////////
+	//初期化処理
+	//////////////////////////////////////////////
+	rule.InitRule(); //ルールの初期化
 	ui.InitUI();
 	player.InitPlayer();
 	map.InitMap();
-	
+	item.InitItem();
 	sound.InitSound();
 	for (int i = 0; i < enemyNum; i++)
 	{
@@ -174,23 +176,20 @@ int		WINAPI		myWinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR     CmdLin
 	while (1)
 	{
 		
-		ClearDrawScreen(); 					// 画面を初期化(真っ黒にする)
+		ClearDrawScreen(); 						// 画面を初期化(真っ黒にする)
 		if (!player.atkFlag)
 		{
 			INPUT_INSTANCE.update();			// 入力キーすべて調べる
 		}
 		
-		rule.frameCount++;
+		rule.frameCount++;						//フレームカウントを足し続ける
 		sound.ringSound(&rule);
 	
 		//// 各アップデート関数を呼ぶ.
-	
 		if (rule.state == STATE_INIT)
 		{
-			
 			ui.InitUI();
 	
-		
 			for (int i = 0; i < enemyNum; i++)
 			{
 				enemy[i].InitEnemy();
@@ -198,12 +197,9 @@ int		WINAPI		myWinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR     CmdLin
 			rule.state=STATE_TITLE;
 
 		}
-	
+		//メイン部分のゲーム処理
 		if (rule.state == STATE_GAME)
 		{
-			
-			
-			map.CreateNewActiveBlock();
 			if (player.damageFlag = true)
 			{
 				player.damagecont++;
@@ -212,15 +208,17 @@ int		WINAPI		myWinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR     CmdLin
 			{
 				enemy->damagecont++;
 			}
-			player.MovePlayer(&sound);				//プレーヤーの移動
+			player.MovePlayer(&sound);							//プレーヤーの移動
 		
-			map.scroll(&player);							//スクロール
+			map.scroll(&player);								//スクロール
 			for (int i = 0; i < enemyNum; i++)
 			{
-				player.IitemHit(&map, &enemy[i],&sound);
+				item.ItemHit(&player, &map, &enemy[i], &sound);
 				player.PlayerHitChec(&enemy[i], map, &sound);	//プレーヤーの当たり判定
 				enemy[i].BlocRectEnemy();
 			}
+			
+			//敵をランダムで生み出す
 			if (rule.frameCount % rule.enemuyCount == 0)
 			{
 				for (int i = 0; i < enemyNum; i++)
@@ -230,23 +228,22 @@ int		WINAPI		myWinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR     CmdLin
 						enemy[i].AddEnemy(enemy[i].ranodmRange(200, 300), enemy[i].ranodmRange(100, 3000), enemy[i].ranodmRange(1, -1), enemy[i].ranodmRange(1, -1));
 						break;
 					}
-
 				}
 			}
 			
-			player.PlayerBlocrect(&sound, &rule, &map);
+			player.PlayerBlocrect(&sound, &rule, &map); //プレーヤーとマップの当たり判定
 			
 		}
 		for (int i = 0; i < enemyNum; i++)
 		{
-			rule.UpdateRule(&player, &enemy[i], &map, &sound,&rule);
+			rule.UpdateRule(&player, &enemy[i], &map, &sound, &rule);
 		}
 		
 		if (rule.state == STATE_GAME)
 		{
 			DrawExtendGraph(0 - 1, 0, WINDOW_WIDTH - 1, WINDOW_HEIGHT, ui.sky, TRUE);
 			map.DrawMap(&rule);						//マップ描画
-	
+			item.DrawItem(&map);
 			for (int i = 0; i < enemyNum; i++)
 			{
 				enemy[i].DrawEnemy(&player, &map, &rule,&text); //エネミーの表示

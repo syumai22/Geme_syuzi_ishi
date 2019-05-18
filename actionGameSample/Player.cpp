@@ -1,12 +1,10 @@
 #include"Header.h"
 
-const float Player::Accel				= 0.3f;					// プレーヤの 横方向加速度 
-const float Player::Brake_Ratio			= 0.2f;
-const float Player::JumpPower			= 8.0f;
-const float Player::Jumpbrake_Ratio		= 0.3f;
-const float Player::Gravity				= 0.3f;
-const float	Player::epsiron				= 0.4f;
-
+const float Player::Accel				= 0.3f;					//プレーヤの 横方向加速度 
+const float Player::Brake_Ratio			= 0.2f;					//ブレーキ
+const float Player::JumpPower			= 8.0f;					//ジャンプの高さ
+const float Player::Gravity				= 0.3f;					//重力
+const float Player::MAX_OVERLAP_CAPACITY = 15.0f;
 bool p_checkHitRect(rect r1, rect r2)
 {
 		return ((r1.x < (r2.x + r2.w)) &&
@@ -19,12 +17,11 @@ void Player::InitPlayer()
 {
 	LoadDivGraph("image/player.png", 16, 16, 1, 32, 32, imgPlayer);
 	LoadDivGraph("image/player2.png", 5, 5, 1, 32, 32, imgp_Atk);
-	LoadDivGraph("image/kiru.png", 3, 3, 1, 32, 32,	imgp_zan);
 	LoadDivGraph("image/efe_fire.png", 8, 8, 1, 32, 32, img_efe_fire);
 	LoadDivGraph("image/recovery2.png", 6, 6, 1, 128, 126,img_recovery);
 	LoadDivGraph("image/uke.png", 5, 5, 1, 120, 120, img_damege);
 
-	capsule = LoadGraph("image/capser.bmp");
+	
 	x= 80.0f;
 	y = 3110.0f;
 	vx = 0.0f;
@@ -46,10 +43,7 @@ void Player::InitPlayer()
 	atkDamage=false;
     rightbrokflag=false;
     leftbrokflag=false;
-	for (int i = 0; i < 9; i++)
-	{
-		iltemsGetto[i] = true;
-	}
+	
 	damageFlag= false;
 	damageEfctFlag = false;
 	fireEfektFlag = false;
@@ -91,73 +85,32 @@ void Player::PlayerAnime(Map *scr,Rule *rule,BitmapText text,Sound *sound)
 	{
 		ani = false;
 	}
-	//プレーヤの攻撃アニメーション
-	if (atkFlag == true)
-	{
-		vx = 0;
 
-		if (rule->frameCount % atkMotionCount == 0)
-		{
-			atkAnimNum++;
-		}
-		if (rule->frameCount % atkEfektMotionCount == 0)
-		{
-			atkEfekt++;
-		}
-		if (atkEfekt == atkEfekt_End)
-		{
-			atkEfekt = atkEfekt_Start;
-		}
-		if (atkAnimNum == atkAnimNum_End)
-		{
-			atkAnimNum = atkAnimNum_Start;
-			atkFlag = false;
-		}
-		if (dir == TRUE)
-		{
-			DrawRotaGraph(x + rightAtkModification - scr->X, y - scr->Y + Modification, 1.0f, 0, imgp_zan[atkEfekt], TRUE, dir);
-		}
-		else
-		{
-			DrawRotaGraph(x - leftArkModification - scr->X, y - scr->Y + Modification, 1.0f, 0, imgp_zan[atkEfekt], TRUE, dir);
-		}
-	}
-	else
-	{
-		atkFlag = false;
-	}
 	
-	//プレイヤー攻撃画像への画像切り替え
-	if (atkFlag == true)
+	if(!damageEfctFlag )
 	{
-		DrawRotaGraph(x + p_xOffset - scr->X, y - scr->Y + Modification, 1.0f, 0, imgp_Atk[atkAnimNum], TRUE, dir);
+		DrawRotaGraph(x + p_xOffset - scr->X, y - scr->Y + Modification, 1.0f, 0, imgPlayer[animNum], TRUE, dir);
 	}
-	if(!atkFlag )
+	if (damageEfctFlag== true|| fireEfektFlag == true)
 	{
-		if(!damageEfctFlag )
+		
+		if (rule->frameCount % 10 == 0)
 		{
+			text.setFontColor(255, 0, 0);
 			DrawRotaGraph(x + p_xOffset - scr->X, y - scr->Y + Modification, 1.0f, 0, imgPlayer[animNum], TRUE, dir);
+			text.setFontColor(255, 255, 255);
 		}
-		if (damageEfctFlag== true|| fireEfektFlag == true)
-		{
-			
-			if (rule->frameCount % 10 == 0)
-			{
-				text.setFontColor(255, 0, 0);
-				DrawRotaGraph(x + p_xOffset - scr->X, y - scr->Y + Modification, 1.0f, 0, imgPlayer[animNum], TRUE, dir);
-				text.setFontColor(255, 255, 255);
-			}
-		}
-        else if (efektFlag == true)
-        {
-            if (rule->frameCount % 10 == 0)
-            {
-                text.setFontColor(255, 255, 0);
-                DrawRotaGraph(x + p_xOffset - scr->X, y - scr->Y + Modification, 1.0f, 0, imgPlayer[animNum], TRUE, dir);
-                text.setFontColor(255, 255, 255);
-            }
-        }
 	}
+       else if (efektFlag == true)
+       {
+           if (rule->frameCount % 10 == 0)
+           {
+               text.setFontColor(255, 255, 0);
+               DrawRotaGraph(x + p_xOffset - scr->X, y - scr->Y + Modification, 1.0f, 0, imgPlayer[animNum], TRUE, dir);
+               text.setFontColor(255, 255, 255);
+           }
+       }
+	
 	//ダメージエフェクト
 	if (rule->frameCount % 5 == 0)
 	{
@@ -198,45 +151,10 @@ void Player::PlayerAnime(Map *scr,Rule *rule,BitmapText text,Sound *sound)
 	}
 	if (fireEfektFlag == true)
 	{	
-		DrawGraph(x - scr->X, y - scr->Y + 5, img_efe_fire[fireEfektAnimNum], TRUE);
+		DrawGraph(x - scr->X, y - scr->Y + 5.0f, img_efe_fire[fireEfektAnimNum], TRUE);
 	}
 	
-	if(iltemsGetto[0])
-	{
-		DrawGraph(150 - scr->X, 2010 - scr->Y, capsule,TRUE);
-	}
-	if (iltemsGetto[1])
-	{
-		DrawGraph(100 - scr->X, 1600 - scr->Y, capsule, TRUE);
-	}
-	if (iltemsGetto[2])
-	{
-		DrawGraph(200 - scr->X, 1200 - scr->Y, capsule, TRUE);
-	}
-	if (iltemsGetto[3])
-	{
-		DrawGraph(50 - scr->X, 800 - scr->Y, capsule, TRUE);
-	}
-	if (iltemsGetto[4])
-	{
-		DrawGraph(50 - scr->X, 500 - scr->Y, capsule, TRUE);
-	}
-	if (iltemsGetto[5])
-	{
-		DrawGraph(400 - scr->X, 1000 - scr->Y, capsule, TRUE);
-	}
-	if (iltemsGetto[6])
-	{
-		DrawGraph(450 - scr->X, 3000 - scr->Y, capsule, TRUE);
-	}
-	if (iltemsGetto[7])
-	{
-		DrawGraph(450 - scr->X, 1900 - scr->Y, capsule, TRUE);
-	}
-    if (iltemsGetto[8])
-    {
-        DrawGraph(450 - scr->X, 1500 - scr->Y, capsule, TRUE);
-    }
+	
 }
 
 
@@ -267,8 +185,6 @@ void Player::MovePlayer(Sound *sound)
             vx = MAX_OVERLAP_CAPACITY;
         }
     }
-   
-  
         //左移動処理
         if (INPUT_INSTANCE.getInput(KEY_INPUT_LEFT))
         {
@@ -288,43 +204,13 @@ void Player::MovePlayer(Sound *sound)
                 vx = -MAX_OVERLAP_CAPACITY;
             }
         }
-    
-	//攻撃
-	//if (INPUT_INSTANCE.getInput(KEY_INPUT_Z) == 1)
-	//{
-	//	PlaySoundMem(sound->p_atk, DX_PLAYTYPE_BACK); // 攻撃効果音を再生する
-	//	zan = true;
-	//	atkFlag = true;
-	//	atkDamage = true;
-	//	damageFlag =true;
-	//	if (vx < 0.0f && vx > -epsiron)
-	//	{
-	//		vx = 0.0f;
-	//	}
-	//	
-	//}
-	//else
-	//{
-	//	fraicount = 100;
-	//}
-	
+
 	//ブレーキ
 	if (!(INPUT_INSTANCE.getInput(KEY_INPUT_RIGHT)) &&
 		!(INPUT_INSTANCE.getInput(KEY_INPUT_LEFT)))
 	{
 		vx *= Brake_Ratio;
 	}
-
-	//ずれ防止
-	/*if (vx < 0.0f && vx > -epsiron)
-	{
-		vx = 0.0f;
-	}*/
-	/*if (vy< 0.0f && vy > -epsiron)
-	{
-		vy = 0.0f;
-	}*/
-
 	// ジャンプボタン押した
 	if (INPUT_INSTANCE.getInput(KEY_INPUT_SPACE) == KEY_STATE_PUSHDOWN
 		&& p_onGround)
@@ -434,27 +320,18 @@ void Player::PlayerBlocrect(Sound *sound,Rule *rule,Map *scr)
 						if ((playerRect.x + playerRect.w) - blocrect.x< MAX_OVERLAP_CAPACITY &&
 							vx > 0.0f)
 						{
-                          
 							playerRect.x = blocrect.x - playerRect.w;
 							vx = 0.0f;
 						}
-                       
 						// ブロックの右端とぶつかった
 						if ((blocrect.x + blocrect.w) - playerRect.x< MAX_OVERLAP_CAPACITY &&
 							vx < 0.0f)
 						{
-                            
 							playerRect.x = blocrect.x + blocrect.w;
 							vx = 0.0f;
 						}
-                     
-		
-					
 					}
-					
 				}
-			
-				
 				if (map[y][x] == 10)
 				{
 					fireEfektFlag = true;
@@ -541,74 +418,7 @@ void Player::PlayerBlocrect(Sound *sound,Rule *rule,Map *scr)
 
 	
 }
-void Player::IitemHit(Map *scr,Enemy *enemy,Sound *sound)
-{
-	rect PlayerHitChecRect, Iitemhitchecrect[9];
-	PlayerHitChecRect.x = x - scr->X;
-	PlayerHitChecRect.y = y - scr->Y;
-	PlayerHitChecRect.w = w;
-	PlayerHitChecRect.h = h;
 
-	Iitemhitchecrect[0].x = 150-scr->X;
-	Iitemhitchecrect[0].y = 2010-scr->Y;
-	Iitemhitchecrect[0].w = 32;
-	Iitemhitchecrect[0].h = 32;
-
-	Iitemhitchecrect[1].x = 100 - scr->X;
-	Iitemhitchecrect[1].y = 1600 - scr->Y;
-	Iitemhitchecrect[1].w = 32;
-	Iitemhitchecrect[1].h = 32;
-
-	Iitemhitchecrect[2].x = 200 - scr->X;
-	Iitemhitchecrect[2].y = 1200 - scr->Y;
-	Iitemhitchecrect[2].w = 32;
-	Iitemhitchecrect[2].h = 32;
-
-	Iitemhitchecrect[3].x = 50 - scr->X;
-	Iitemhitchecrect[3].y = 800 - scr->Y;
-	Iitemhitchecrect[3].w = 32;
-	Iitemhitchecrect[3].h = 32;
-
-	Iitemhitchecrect[4].x = 50 - scr->X;
-	Iitemhitchecrect[4].y = 500 - scr->Y;
-	Iitemhitchecrect[4].w = 32;
-	Iitemhitchecrect[4].h = 32;
-
-	Iitemhitchecrect[5].x = 400 - scr->X;
-	Iitemhitchecrect[5].y = 1000 - scr->Y;
-	Iitemhitchecrect[5].w = 32;
-	Iitemhitchecrect[5].h = 32;
-
-	Iitemhitchecrect[6].x = 450 - scr->X;
-	Iitemhitchecrect[6].y = 3000 - scr->Y;
-	Iitemhitchecrect[6].w = 32;
-	Iitemhitchecrect[6].h = 32;
-
-	Iitemhitchecrect[7].x = 450 - scr->X;
-	Iitemhitchecrect[7].y = 1900 - scr->Y;
-	Iitemhitchecrect[7].w = 32;
-	Iitemhitchecrect[7].h = 32;
-
-    Iitemhitchecrect[8].x = 450 - scr->X;
-    Iitemhitchecrect[8].y = 1500 - scr->Y;
-    Iitemhitchecrect[8].w = 32;
-    Iitemhitchecrect[8].h = 32;
-
-	for(int i=0;i<9;i++)
-	{ 
-		if (iltemsGetto[i] == true)
-		{
-			if (p_checkHitRect(PlayerHitChecRect, Iitemhitchecrect[i]))
-			{
-				hpba+=5;
-				hp_max += 5;
-				PlaySoundMem(sound->IltemuGet, DX_PLAYTYPE_BACK);
-				iltemsGetto[i] = false;
-			}
-		}
-	
-	}
-}
 
 void Player::PlayerHitChec(Enemy *enemy,Map scr,Sound *sound)
 {
